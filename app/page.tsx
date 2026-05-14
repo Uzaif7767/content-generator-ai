@@ -191,8 +191,8 @@ const Home: FC = () => {
     </form>
 
     <div className="mt-8 text-gray-400">
-      <p>Email: <a href="example.com" className="text-gray-700 hover:underline">example@gmail.com</a></p>
-      <p>Phone: <a href="tel:+91 12345678" className="text-gray-700 hover:underline">tel:+91-1234567891</a></p>
+      <p>Email: <a href="example.com" className="text-gray-700 hover:underline">uzaifsid83@gmail.com</a></p>
+      <p>Phone: <a href="tel:+91 12345678" className="text-gray-700 hover:underline">tel:+91 7773006366</a></p>
     </div>
   </div>
 </section>

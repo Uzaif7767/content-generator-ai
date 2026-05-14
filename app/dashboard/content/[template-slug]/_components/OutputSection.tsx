@@ -9,58 +9,62 @@ interface Props {
 }
 
 function OutputSection({ aiOutput }: Props) {
-  const editorRef: any = useRef();
-  const [isCopied, setIsCopied] = useState(false); // Track if content is copied
+  const editorRef: any = useRef(null);
+  const [isCopied, setIsCopied] = useState(false);
 
-  useEffect(() => {
-    const editorInstance = editorRef.current.getInstance();
+  // ✅ SAFE CLEAN FUNCTION
+  const cleanText = (text?: string) => {
+    if (!text) return ""; // 🔥 FIX (no crash)
 
-    // Clean the input to remove unwanted RTF/HTML
-    const cleanOutput = cleanText(aiOutput);
-    editorInstance.setMarkdown(cleanOutput); // Set the cleaned markdown content in the editor
-
-    // Reset the copied state when new content is passed
-    setIsCopied(false); // Reset the button back to 'Copy'
-  }, [aiOutput]);
-
-  // Function to clean text (removing RTF/HTML tags)
-  const cleanText = (text: string) => {
-    // Removes RTF tags, HTML tags, and excess spaces
     return text
-      .replace(/\\[a-z]+[0-9]? ?|{\\|}|<[^>]*>/g, '') // Remove RTF and HTML tags
-      .replace(/[\r\n]+/g, '\n') // Normalize newlines
-      .trim(); // Remove leading/trailing whitespace
+      .replace(/\\[a-z]+[0-9]? ?|{\\|}|<[^>]*>/g, "")
+      .replace(/[\r\n]+/g, "\n")
+      .trim();
   };
 
-  // Function to copy content from editor to clipboard
-  const handleCopy = () => {
-    const editorInstance = editorRef.current.getInstance();
-    const content = editorInstance.getMarkdown(); // Get the markdown content from the editor
+  useEffect(() => {
+    const editorInstance = editorRef.current?.getInstance();
 
-    // Copy content to clipboard
+    if (!editorInstance) return; // 🔥 FIX
+
+    const cleanOutput = cleanText(aiOutput || "");
+
+    editorInstance.setMarkdown(cleanOutput);
+
+    setIsCopied(false);
+  }, [aiOutput]);
+
+  // ✅ COPY FUNCTION SAFE
+  const handleCopy = () => {
+    const editorInstance = editorRef.current?.getInstance();
+    if (!editorInstance) return;
+
+    const content = editorInstance.getMarkdown();
+
     navigator.clipboard
       .writeText(content)
       .then(() => {
-        setIsCopied(true); // Change button to 'Copied!' when successful
-        setTimeout(() => {
-          setIsCopied(false); // Reset the button back to 'Copy' after 2 seconds
-        }, 2000);
+        setIsCopied(true);
+        setTimeout(() => setIsCopied(false), 2000);
       })
       .catch((err) => {
         console.error('Failed to copy text:', err);
       });
   };
 
-  // Function to clear the editor content
+  // ✅ CLEAR FUNCTION SAFE
   const handleClear = () => {
-    const editorInstance = editorRef.current.getInstance();
-    editorInstance.setMarkdown(''); // Clear the markdown content
+    const editorInstance = editorRef.current?.getInstance();
+    if (!editorInstance) return;
+
+    editorInstance.setMarkdown('');
   };
 
   return (
     <div className="bg-white shadow-lg border rounded-lg">
       <div className="flex justify-between items-center p-5">
         <h2 className="font-bold text-lg">Your Result</h2>
+
         <div className="flex gap-2">
           <Button onClick={handleCopy} className="flex gap-2 bg-green-600">
             {isCopied ? (
@@ -73,11 +77,17 @@ function OutputSection({ aiOutput }: Props) {
               </>
             )}
           </Button>
-          <Button onClick={handleClear} className="flex gap-2" variant="destructive">
+
+          <Button
+            onClick={handleClear}
+            className="flex gap-2"
+            variant="destructive"
+          >
             <Trash2 className="w-4 h-4" /> Clear
           </Button>
         </div>
       </div>
+
       <Editor
         ref={editorRef}
         initialValue="Your result will appear here"
