@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-import '@toast-ui/editor/dist/toastui-editor.css';
 import { Editor } from '@toast-ui/react-editor';
 import { Copy, Check, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
