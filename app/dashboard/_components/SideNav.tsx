@@ -1,30 +1,18 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React from "react";
 import Image from "next/image";
-import { Home, Settings, History } from "lucide-react";
+import { Home, Settings } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 
 function SideNav() {
   const router = useRouter();
   const path = usePathname();
 
-  // 🔥 History state
-  const [historyList, setHistoryList] = useState<any[]>([]);
-
   const MenuList = [
     { name: "Home", icon: Home, path: "/dashboard" },
-    { name: "History", icon: History, path: "/dashboard/history" }, // ✅ added
     { name: "Settings", icon: Settings, path: "/dashboard/settings" },
   ];
-
-  // 🔥 Load history (localStorage demo)
-  useEffect(() => {
-    const stored = localStorage.getItem("aiHistory");
-    if (stored) {
-      setHistoryList(JSON.parse(stored));
-    }
-  }, []);
 
   return (
     <div className="h-screen w-64 p-5 border-r bg-white shadow-sm flex flex-col">
@@ -61,26 +49,6 @@ function SideNav() {
             </div>
           );
         })}
-      </div>
-
-      {/* 🔥 RECENT HISTORY PREVIEW */}
-      <div className="mt-6 flex-1 overflow-y-auto">
-        <h2 className="text-xs text-gray-400 mb-2">Recent</h2>
-
-        {historyList.length === 0 ? (
-          <p className="text-xs text-gray-400">No history</p>
-        ) : (
-          historyList.slice(0, 5).map((item, index) => (
-            <div
-              key={index}
-              className="text-xs p-2 rounded-md cursor-pointer 
-              hover:bg-gray-100 line-clamp-2"
-              onClick={() => router.push(`/dashboard/history`)}
-            >
-              {item.prompt?.slice(0, 40)}...
-            </div>
-          ))
-        )}
       </div>
     </div>
   );
