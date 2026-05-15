@@ -1,19 +1,31 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Editor } from '@toast-ui/react-editor';
-import { Copy, Check, Trash2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+"use client";
+
+import React, { useEffect, useState } from "react";
+import {
+  Editor,
+  EditorProvider,
+  Toolbar,
+  BtnBold,
+  BtnItalic,
+  BtnUnderline,
+  BtnBulletList,
+  BtnNumberedList,
+} from "react-simple-wysiwyg";
+
+import { Copy, Check, Trash2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface Props {
   aiOutput: string;
 }
 
 function OutputSection({ aiOutput }: Props) {
-  const editorRef: any = useRef(null);
   const [isCopied, setIsCopied] = useState(false);
+  const [content, setContent] = useState("");
 
-  // ✅ SAFE CLEAN FUNCTION
+  // ✅ Clean AI text
   const cleanText = (text?: string) => {
-    if (!text) return ""; // 🔥 FIX (no crash)
+    if (!text) return "";
 
     return text
       .replace(/\\[a-z]+[0-9]? ?|{\\|}|<[^>]*>/g, "")
@@ -21,42 +33,27 @@ function OutputSection({ aiOutput }: Props) {
       .trim();
   };
 
+  // ✅ Update editor content
   useEffect(() => {
-    const editorInstance = editorRef.current?.getInstance();
-
-    if (!editorInstance) return; // 🔥 FIX
-
-    const cleanOutput = cleanText(aiOutput || "");
-
-    editorInstance.setMarkdown(cleanOutput);
-
+    setContent(cleanText(aiOutput));
     setIsCopied(false);
   }, [aiOutput]);
 
-  // ✅ COPY FUNCTION SAFE
-  const handleCopy = () => {
-    const editorInstance = editorRef.current?.getInstance();
-    if (!editorInstance) return;
+  // ✅ Copy content
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(content);
+      setIsCopied(true);
 
-    const content = editorInstance.getMarkdown();
-
-    navigator.clipboard
-      .writeText(content)
-      .then(() => {
-        setIsCopied(true);
-        setTimeout(() => setIsCopied(false), 2000);
-      })
-      .catch((err) => {
-        console.error('Failed to copy text:', err);
-      });
+      setTimeout(() => setIsCopied(false), 2000);
+    } catch (error) {
+      console.error("Copy failed:", error);
+    }
   };
 
-  // ✅ CLEAR FUNCTION SAFE
+  // ✅ Clear editor
   const handleClear = () => {
-    const editorInstance = editorRef.current?.getInstance();
-    if (!editorInstance) return;
-
-    editorInstance.setMarkdown('');
+    setContent("");
   };
 
   return (
@@ -87,13 +84,27 @@ function OutputSection({ aiOutput }: Props) {
         </div>
       </div>
 
-      <Editor
-        ref={editorRef}
-        initialValue="Your result will appear here"
-        initialEditType="wysiwyg"
-        height="450px"
-        useCommandShortcut={true}
-      />
+      <div className="p-4">
+        <EditorProvider>
+          <Toolbar>
+            <BtnBold />
+            <BtnItalic />
+            <BtnUnderline />
+            <BtnBulletList />
+            <BtnNumberedList />
+          </Toolbar>
+
+          <Editor
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+            containerProps={{
+              style: {
+                minHeight: "400px",
+              },
+            }}
+          />
+        </EditorProvider>
+      </div>
     </div>
   );
 }
